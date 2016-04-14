@@ -5,9 +5,12 @@ function LiveLinks(fbname) {
   var linksRef = firebase.child('links');
 
   this.submitLink = function(url, title) {
+    //console.log('submitLink, url, title:', url, title);
     url = url.substring(0,4) !== "http" ? "http://" + url : url;
+    //btoa: create a base-64 encoded ASCII string from a String object
     linksRef.child(btoa(url)).set({
-      title: title
+      title: title,
+      url: url //property was missing
     });
   };
 
@@ -15,14 +18,19 @@ function LiveLinks(fbname) {
 
   linksRef.on('value', function(snapshot) {
     var links = snapshot.val();
+    console.log('links: ', links);
     var preparedLinks = [];
-    for (var url in links) {
-      if (links.hasOwnProperty(url)) {
+    //nutter's for (var url in links) is misleading and does NOT work.
+    for (var key in links) {
+      console.log('key, links, links[key]: ', key, links, links[key]);
+      //if (links.hasOwnProperty(url)) {
+      //if (links.hasOwnProperty(key)) { //why do this? we already have the property key of links
         preparedLinks.push({
-          title: links[url].title,
-          url: atob(url)
+          title: links[key].title,
+          //url: atob(url)
+          url: atob(links[key].url) //nutter didn't actually add the link
         })
-      }
+      //}
     }
     this.onLinksChanged(preparedLinks);
   }.bind(this));
@@ -32,7 +40,8 @@ function LiveLinks(fbname) {
 
 $(document).ready(function() {
 
-	var ll = new LiveLinks('livelinks1234');
+  //var ll = new LiveLinks('livelinks1234');
+  var ll = new LiveLinks('boiling-fire-2657');
 
 	$(".link-form form").submit(function(event) {
     event.preventDefault();
